@@ -25,4 +25,8 @@ export class UserRepository{
     async update(user:User){
         return this.repository.update(user);
     }
+
+    async getUserByEmail(email:string){
+        return this.repository.whereEqualTo("email", email).findOne();
+    }
 }

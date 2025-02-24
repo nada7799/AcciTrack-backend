@@ -14,13 +14,20 @@ export class CreateUserDto{
 
         @ValidateIf(o => !o.isGuest)
         @MinLength(2)
-        @MaxLength(10)
+        @MaxLength(20)
         firstName?: string;
 
         @ValidateIf(o => !o.isGuest)
         @MinLength(2)
-        @MaxLength(10)
-        lirstName?: string;
+        @MaxLength(20)
+        lastName?: string;
 
-        isGuest : boolean;
+        isGuest: boolean = false; // Default value
+
+        constructor(partial?: Partial<CreateUserDto>) {
+        Object.assign(this, partial);
+        if (this.isGuest === undefined) {
+                this.isGuest = false;
+        }
+        }
 }

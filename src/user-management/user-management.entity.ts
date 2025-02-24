@@ -6,10 +6,12 @@ export class User{
     id : string;
     email? : string;
     password?: string;
-    name?: string;
+    lastName?:string;
+    firstName?: string;
     isGuest : boolean;
     uploadsId? : string[];
     accidentsId ?: string[];
-    notificationsId? : string[]
+    notificationsId? : string[];
+    fcmToken?: string;
     createdAt : firestore.Timestamp;
 }

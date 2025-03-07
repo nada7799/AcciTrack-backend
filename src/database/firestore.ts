@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 const { initialize } = require('fireorm');
 const { readFileSync } = require('node:fs');
+
 const path = require('node:path');
 
 const serviceAccountPath = path.resolve(process.cwd(), 'src/config', 'acitrack.json');
@@ -21,5 +22,4 @@ async function testFirestoreConnection() {
 }
 
 testFirestoreConnection();
-
-module.exports = { firestore };
+module.exports = { firestore};

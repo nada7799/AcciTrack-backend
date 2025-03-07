@@ -44,12 +44,12 @@ async createUpload(uploadDto:CreateUploadsDto):Promise<Uploads>{
         //found in cache
         if(cacheAccidentId){
                 const accidentFound:Accident = await this.accidentService.findAccidentById(cacheAccidentId);
-                accidentFound.uploadsId.push(createdUpload.id);
+                //accidentFound.uploadsId.push(createdUpload.id);
                 if(!accidentFound.usersId.includes(createdUpload.userId)){
                         accidentFound.usersId.push(createdUpload.userId);
                 }
                 const UpdateAccidentDto : UpdateAccidentDto= {
-                        uploadsId: accidentFound.uploadsId,
+                        uploadsId: createdUpload.id,
                         usersId: accidentFound.usersId
                 }
                 await this.accidentService.updateAccident(accidentFound.id,UpdateAccidentDto);
@@ -68,6 +68,9 @@ async createUpload(uploadDto:CreateUploadsDto):Promise<Uploads>{
         }
         // save it in database
         const createdAccident = await this.accidentService.createAccident(accident);
+        // call API of model
+        
+
         createdUpload.accidentId = createdAccident.id;
         await this.uploadRepository.updateUpload(createdUpload);
         //save it in cache for one hour 

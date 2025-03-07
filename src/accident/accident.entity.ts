@@ -8,7 +8,13 @@ export class Accident{
     geohash: string;
     timeBucket : firestore.Timestamp;
     uploadsId : string[]; 
-    usersId: string[];
+    usersId: string[];  
+    numberOfInjuries? :number;
+    woundCategory?:string;
+    bloodSeverity?:string;
+    burnDegree?:string;
+    age?:string;
+    gender?:string;
     createdAt : firestore.Timestamp;
     updatedAt: firestore.Timestamp;
 }

@@ -11,3 +11,5 @@ import { firestore } from 'firebase-admin';
 exports : ['FIRESTORE'],
 })
 export class DatabaseModule {}
+
+export { firestore };

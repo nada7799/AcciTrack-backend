@@ -9,11 +9,12 @@ import { DatabaseModule } from './database/database.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { RedisModule } from './redis/redis.module';
+import { ActiveUsersModule } from './active-users/active-users.module';
 
 
 
 @Module({
-  imports: [ AccidentModule, NotificationsModule, UserManagementModule, DatabaseModule, UploadsModule, AuthenticationModule, RedisModule],
+  imports: [ AccidentModule, NotificationsModule, UserManagementModule, DatabaseModule, UploadsModule, AuthenticationModule, RedisModule, ActiveUsersModule],
   controllers: [AppController],
   providers: [AppService],
 })

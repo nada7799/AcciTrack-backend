@@ -4,9 +4,9 @@ import { CreateAccidentDto } from 'src/dtos/create-accident.dto';
 import {UpdateAccidentDto} from 'src/dtos/update-accident.dto'
 import * as geohash from 'ngeohash';
 import { Timestamp } from '@google-cloud/firestore';
-import { NotFoundError } from 'rxjs';
 import { Accident } from './accident.entity';
 import { firestore } from 'firebase-admin';
+import { AccidentInfoDto } from 'src/dtos/accidentInfo.dto';
 @Injectable()
 export class AccidentService {
     constructor(private accidentRepo : AccidentRepository){}
@@ -16,7 +16,7 @@ export class AccidentService {
        const {longitude , latitude} = createAccident.location;
        const location = createAccident.location;
        /* it creates a hash string of the latitude and longitude , and when we increase the percesion which is the
-       third parameter passed , it represents more percise area that means a smaller ares
+       third parameter passed , it represents more percise area that means a smaller areas
        the longer the hash , the smaller the area 
        8 -->  38 * 19 */
        const geohashVal = geohash.encode(latitude,longitude,8);
@@ -44,12 +44,26 @@ export class AccidentService {
             if(!accident){
                 throw new NotFoundException("accident not found");
             }
+            accident.uploadsId.push(...updateAccidentDto.uploadsId);
         const updatedAccident : Accident = {
                 ...accident,
-                ...updateAccidentDto,
                 updatedAt : firestore.Timestamp.now()
             }
             await this.accidentRepo.updateAccident(updatedAccident);
+    }
+
+
+    async updateAccidentResults(id:string, accidentInfo:AccidentInfoDto){
+        const accidentFound = await this.accidentRepo.findAccidentById(id);
+        if(!accidentFound){
+            throw new NotFoundException("accident not found");
+        }
+        const UpdatedAccident = {
+            ...accidentFound,
+            ...accidentInfo,
+            updatedAt:firestore.Timestamp.now()
+        }
+        return await this.accidentRepo.updateAccident(UpdatedAccident);
     }
     // function to search in the accidents collection for the nearst accident to this upload
     // if found it is returned , if not it returns null

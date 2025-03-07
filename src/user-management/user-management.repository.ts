@@ -1,8 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { getRepository, IRepository } from "fireorm";
 import { User } from "./user-management.entity";
-import { CreateUserDto } from "src/dtos/create-user.dto";
-
 @Injectable()
 export class UserRepository{
     private repository:IRepository<User>

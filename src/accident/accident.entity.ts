@@ -10,11 +10,11 @@ export class Accident{
     uploadsId : string[]; 
     usersId: string[];  
     numberOfInjuries? :number;
-    woundCategory?:string;
+    woundCategory?:string[];
     bloodSeverity?:string;
     burnDegree?:string;
-    age?:string;
-    gender?:string;
+    age?:string[];
+    gender?:string[];
     createdAt : firestore.Timestamp;
     updatedAt: firestore.Timestamp;
 }

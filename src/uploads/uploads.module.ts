@@ -5,9 +5,11 @@ import { AccidentService } from 'src/accident/accident.service';
 import { UploadsRepository } from './uploads.repository';
 import { RedisService } from 'src/redis/redis.service';
 import { AccidentRepository } from 'src/accident/accident.repository';
+import { UserRepository } from 'src/user-management/user-management.repository';
+import { HttpService } from '@nestjs/axios';
 
 @Module({
-  providers: [UploadsService, AccidentService,UploadsRepository,RedisService,AccidentRepository],
+  providers: [UploadsService, AccidentService,UploadsRepository,RedisService,AccidentRepository,UserRepository],
   controllers: [UploadsController]
 })
 export class UploadsModule {}

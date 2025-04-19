@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class AccidentInfoDto{
     @IsNotEmpty()
@@ -6,8 +6,9 @@ export class AccidentInfoDto{
     numberOfInjuries :number;
 
     @IsNotEmpty()
-    @IsString()
-    woundCategory:string;
+    @IsArray()
+    @IsString({ each: true })
+    woundCategory:string[];
 
     @IsNotEmpty()
     @IsString()
@@ -18,10 +19,20 @@ export class AccidentInfoDto{
     burnDegree:string;
 
     @IsNotEmpty()
-    @IsString()
-    age:string;
+    @IsArray()
+    @IsString({ each: true })
+    age:string[];
 
     @IsNotEmpty()
-    @IsString()
-    gender:string;
+    @IsArray()
+    @IsString({ each: true })
+    gender:string[];
+
+    @IsNotEmpty()
+    @IsNumber()
+    longitude:number;
+    
+    @IsNotEmpty()
+    @IsNumber()
+    latitude:number;
 }

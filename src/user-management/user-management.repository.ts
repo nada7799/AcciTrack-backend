@@ -27,4 +27,5 @@ export class UserRepository{
     async getUserByEmail(email:string){
         return this.repository.whereEqualTo("email", email).findOne();
     }
+
 }

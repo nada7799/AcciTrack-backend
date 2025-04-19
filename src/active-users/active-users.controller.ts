@@ -7,8 +7,9 @@ import { CreateActiveUserDto } from 'src/dtos/createActiveUsers.dto';
 @Controller('active-users')
 export class ActiveUsersController {
     constructor(private activeUsersService:ActiveUsersService,private activeUsersRepo:ActiveUsersRepository){}
-    @Post()
+    @Post('/update-location')
     async create(@Body()user:CreateActiveUserDto){
+        console.log(user);
         return this.activeUsersService.createActiveUser(user);
     }
 

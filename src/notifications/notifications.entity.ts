@@ -3,7 +3,10 @@ import { Collection } from "fireorm";
 @Collection('notifications')
 export class Notifications{
     id : string;
-    usersId : string[];
-    createdAt : firestore.Timestamp;
+    usersIds : string[];
     message : string;
+    latitude:number;
+    longitude:number;
+    status:string;
+    createdAt : firestore.Timestamp;
 }

@@ -11,8 +11,9 @@ import { RedisService } from 'src/redis/redis.service';
 export class ActiveUsersService {
         constructor(private readonly activeUserRepo:ActiveUsersRepository, private userRepo:UserRepository,
             private redis:RedisService ){}
-
+   
         async createActiveUser(user:CreateActiveUserDto){
+        
             const found = await this.activeUserRepo.getActiveUserById(user.id);
             if(found){
                 console.log(found)
@@ -20,7 +21,7 @@ export class ActiveUsersService {
             }
             const userMain = await this.userRepo.findUserById(user.id);
             if(!userMain){
-                throw new NotFoundException("user not found in main database");
+                throw new BadRequestException("user not found in main database");
             }
             // cache active users who recently updated thier location
             // they saty in cahce for 10 minutes 
@@ -29,7 +30,8 @@ export class ActiveUsersService {
             // save it in normal database
             const geohash = ngeohash.encode(user.latitude,user.longitude,8);
             const newUser = {
-                ...user,
+                id:user.id,
+                fcmToken:user.fcmToken,
                 location: {
                     geopoint:new firestore.GeoPoint(user.latitude, user.longitude),  
                     geohash,

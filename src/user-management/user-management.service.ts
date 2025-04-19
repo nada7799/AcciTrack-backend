@@ -1,52 +1,54 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from './user-management.repository';
+import { Response } from 'express';
 import { CreateUserDto } from 'src/dtos/create-user.dto';
 import { AuthenticationService } from 'src/authentication/authentication.service';
 import { User } from './user-management.entity';
 import { firestore } from 'firebase-admin';
+import firebase from 'firebase';
+import { UpdateUserDto } from 'src/dtos/updateUser.dto';
+import { UploadsRepository } from 'src/uploads/uploads.repository';
 
 @Injectable()
 export class UserManagementService {
-    constructor(private userRepository : UserRepository, private authService: AuthenticationService){}
+    constructor(private userRepository : UserRepository, private authService: AuthenticationService, private uploadRepository:UploadsRepository){}
     // guest mode only 
-    async createUser(guestId?:string){
-        if(guestId){
-            const existingUser = await this.userRepository.findUserById(guestId);
+    async createUser(uid:string){
+            const existingUser = await this.userRepository.findUserById(uid);
             if(existingUser){
                 return  { userId: existingUser.id, isGuest: true };
             }
-        }
-        const {uid, isGuest} = await this.authService.signInAsGuest();
         const newUser : User = {
             id : uid,
-            isGuest:isGuest,
+            isGuest:true,
             createdAt: firestore.Timestamp.now()
         }
         await this.userRepository.create(newUser);
-        return { userId: uid , isGuest };
+        return { userId: uid , isGuest:true };
     }
 
 
     // not guest mode
     async signUp(createUser:CreateUserDto){
-        if(!createUser.email||!createUser.password){
+        if(!createUser.email){
             throw new BadRequestException("Email and password cannot be empty.");
         }
         const existingUser = await this.userRepository.getUserByEmail(createUser.email);
         if(existingUser){
             throw new BadRequestException("this email already exists , do you want to sign in?");
         }
-        const {uid, isGuest} = await this.authService.signUp(createUser.email,createUser.password);
+        //const {uid, isGuest} = await this.authService.signUp(createUser.email,createUser.password);
         const user = {
-            id: uid,
-            isGuest,
+            id: createUser.uid,
+            isGuest:false,
             ...createUser,
             createdAt: firestore.Timestamp.now()
         }
-        user.password = await this.hashPassword(user.password);
+        
         await this.userRepository.create(user);
-        return {uid,isGuest};
+        const uid = createUser.uid;
+        return {uid};
     }
 
     async hashPassword(password:string):Promise<string>{
@@ -57,36 +59,30 @@ export class UserManagementService {
     // guest or non guest mode 
     // this sign in is mostly handeled by front end 
     // the frontend sends the token of the user that has been extracted 
-    async signIn(token: any){
-        try{
-            // first we verify the token that it is valid
-        const decodedUser = await this.authService.verifyToken(token);
-
-        // then we extract user data (he can be a guest or a logged in user)
-        const userId = decodedUser.uid;
-        const email = decodedUser.email;
-
-        // get the user from our database
-        let user = await this.userRepository.findUserById(userId);
-
-        // here we check that the user exists in our database , there can be glitches where the user is in the authentication
-        // service of firestore and is registered there with an UID and a valid token but is not stored in our database for some reason
-        // so we have to check that he is in our database, if he is not we put him because we are certain that he has a valid token
-        if(!user){
+    async signIn(token: string) {
+        try {
+            const decodedUser = await this.authService.verifyToken(token);
+          console.log("decoded user ",decodedUser);
+          const userId = decodedUser.uid;
+          const email = decodedUser.email;
+    
+          let user = await this.userRepository.findUserById(userId);
+          if (!user) {
             user = {
-                id:userId,
-                email: email||null,
-                isGuest:!email,
-                createdAt: firestore.Timestamp.now()
+              id: userId,
+              email: email || null,
+              isGuest: !email,
+              createdAt: firestore.Timestamp.now(),
             };
             await this.userRepository.create(user);
+          }
+    
+    
+          return { status: 200, body: { message: 'User signed in' } };
+        } catch (error) {
+          throw new UnauthorizedException(error.message);
         }
-
-        return { user};
-    }catch(error){
-        throw new UnauthorizedException(error.message);
-    }
-    }
+      }
 
 
     // not guest mode
@@ -98,19 +94,31 @@ export class UserManagementService {
         return user;
     }
 
+    async getUserByEmail(email:string){
+        const user= await this.userRepository.getUserByEmail(email)
+        return user;
+    }
+
 
     // not guest mode
     // we will apply paggination here
-    async getUploadsOfUser(id:string){
-        const user= await this.userRepository.findUserById(id);
-        if(!user){
-            throw new NotFoundException(`user with id ${id} is not found`);
+    async getUploadsOfUser(id: string) {
+        const user = await this.userRepository.findUserById(id);
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} is not found`);
         }
-        return user.uploadsId || [];
+    
+        const uploadsId = user.uploadsId || [];
+        if (uploadsId.length === 0) {
+            return []; // No uploads, return empty array
+        }
+    
+        return this.uploadRepository.getUploadsOfUser(uploadsId);
+    
     }
 
-    async upgradeGuest(userId:string , createUser:CreateUserDto){
-        const user = await this.userRepository.findUserById(userId);
+    async upgradeGuest(createUser:CreateUserDto){
+        const user = await this.userRepository.findUserById(createUser.uid);
         if(!user || !user.isGuest){
             throw new BadRequestException('guest user not found');
         }
@@ -119,9 +127,7 @@ export class UserManagementService {
             throw new BadRequestException("this email already exists , do you want to sign in?");
         }
         user.email=createUser.email;
-        user.password=createUser.password;
-        user.firstName = createUser.firstName;
-        user.lastName = createUser.lastName;
+        user.fullName = createUser.fullName;
         user.isGuest=false;
         await this.userRepository.update(user);
         return { message: 'Guest upgraded successfully', user };
@@ -149,5 +155,19 @@ export class UserManagementService {
         }
         await this.authService.logout(id);
         return {message: "logout completed"};
+    }
+
+
+    async update(id:string , user:UpdateUserDto){
+        const userFound = await this.userRepository.findUserById(id);
+        if(!userFound){
+            throw new NotFoundException("user does not exist");
+        }
+
+        const newUser = {
+            ...userFound,
+            ...user,
+        };
+        return await this.userRepository.update(newUser);
     }
 }

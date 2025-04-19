@@ -5,10 +5,9 @@ import { Collection } from 'fireorm';
 export class User{
     id : string;
     email? : string;
-    password?: string;
-    lastName?:string;
-    firstName?: string;
+    fullName?:string;
     isGuest : boolean;
+    phoneNumber? :string;
     uploadsId? : string[];
     accidentsId ?: string[];
     notificationsId? : string[];
